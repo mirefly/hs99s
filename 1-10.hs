@@ -42,3 +42,34 @@ myReverse' :: [a] -> [a]
 myReverse' xs = foldl f [] xs
     where f ys x = (x:ys)
 
+-- 6
+isPalindrome :: (Eq a) => [a] -> Bool
+isPalindrome xs = (xs == reverse xs)
+
+-- 7
+data NestedList a = Elem a | List [NestedList a]
+
+flatten :: NestedList a -> [a]
+flatten (Elem x) = [x]
+flatten (List ys) = foldl f [] ys
+    where f r y = r ++ (flatten y)
+
+-- 8
+compress :: Eq a => [a] -> [a]
+compress [] = []
+compress xs = foldr f [(last xs)] xs
+    where f x acc = if (head acc) == x then acc
+                    else (x:acc)
+
+-- 9
+pack :: Eq a => [a] -> [[a]]
+pack [] = []
+pack xs = foldr f [[]] xs
+    where f x (r:rs) 
+            | r == [] = [[x]]
+            | (head r) == x = ((x:r):rs)
+            | otherwise = ([x]:(r:rs))
+
+-- 10
+encode :: Eq a => [a] -> [(Int, a)]
+encode = map (\x -> (length x, head x)) . pack

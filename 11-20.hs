@@ -44,3 +44,31 @@ dropEvery :: [a] -> Int -> [a]
 dropEvery xs n
     | length xs < n = xs
     | otherwise = (init $ take n xs) ++ (dropEvery (drop n xs) n)
+
+-- 17 -- predefined predicates
+split :: [a] -> Int -> ([a], [a])
+split xs n = ((take n xs), (drop n xs))
+
+-- 17
+split' :: [a] -> Int -> ([a], [a])
+split' [] n | n>0 = ([], [])
+split' xs n | n<=0  = ([], xs)
+split' (x:xs) n = ([x]++(fst s'), snd s')
+                  where s' = split' xs (n-1)
+
+-- 18
+slice :: [a] -> Int -> Int -> [a]
+slice xs n1 n2 = [snd x | x <- filter f $zip [1..] xs]
+                where f x = (fst x <= n2) && (fst x >= n1)
+
+-- 19
+rotate :: [a] -> Int -> [a]
+rotate xs n
+    | n >= 0 = (drop n xs) ++ (take n xs)
+    | n <0 = reverse $ rotate (reverse xs) (-n)
+
+-- 20
+removeAt :: Int -> [a] -> (a, [a])
+removeAt n xs
+    | n <= 0 || n > length xs = error "incorrect index"
+    | otherwise = (xs !! (n-1), (take (n-1) xs) ++ (drop n xs))

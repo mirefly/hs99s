@@ -1,3 +1,5 @@
+import Data.List
+
 -- 46, 47
 and' :: Bool -> Bool -> Bool
 and' True True = True
@@ -75,3 +77,29 @@ grey x = (map ((:) '0') y') ++ (map ((:) '1') $ reverse y')
     where y' = grey (x-1)
 
 -- 50
+huffman :: [(Char, Int)] -> [(Char, String)]
+huffman = getCodes . bhTree
+
+
+data Tree = Leaf Int Char | Node Int Tree Tree
+    deriving (Show, Eq)
+
+instance Ord Tree where
+    x <= y = getN x <= getN y
+
+getN :: Tree -> Int
+getN (Leaf x _) = x
+getN (Node x _ _) = x
+
+getCodes :: Tree -> [(Char, String)]
+getCodes (Leaf _ c) = [(c, [])]
+getCodes (Node _ l r) = sortBy (\(a, _) (b, _)->compare a b) (lc ++ rc)
+    where lc = map (addChar '0') $ getCodes l
+          rc = map (addChar '1') $ getCodes r
+          addChar s' (c, s) = (c, (s':s))
+
+bhTree inp = head $ helper $ sort $ initNodeList
+    where initNodeList = map (\(c,n)->Leaf n c) inp
+          helper (x:[]) = (x:[])
+          helper (x1:x2:xs) = helper $ sort (newnode:xs)
+                where newnode = Node (getN x1 + getN x2) x1 x2

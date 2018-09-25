@@ -35,6 +35,7 @@ ipl xtr@(Node x ts) = (g xtr - 1) + sum (map ipl ts)
 bottom_up :: Tree Char -> [Char]
 bottom_up (Node x ts) = (foldl (++) [] $ map bottom_up ts) ++ [x]
 
+--73
 display_lisp :: Tree Char -> [Char]
 display_lisp (Node x []) = x : []
 display_lisp (Node x ts) = ('(' : x : ' ' : str') ++ ")"

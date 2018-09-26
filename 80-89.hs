@@ -1,8 +1,8 @@
 import Data.List
 
-data Graph = Graph [Char] [(Char, Char)]
+data Graph = Graph String [(Char, Char)]
             deriving (Show, Eq)
-data Adj = Adj [(Char, [Char])]
+data Adj = Adj [(Char, String)]
           deriving Show
 
 --80 Not completed
@@ -26,11 +26,11 @@ rmdup ys = foldl (\res y -> if y `elem` res then res else res++[y]) [] ys
 paths :: Int -> Int -> [(Int, Int)] -> [[Int]]
 paths s d edges = helper [[s]] []
     where helper [] final = final
-          helper possible final = helper (filter (not . f) possible') (final++(filter f possible'))
-            where possible' = concat $ map extend possible
+          helper possible final = helper (filter (not . f) possible') (final++filter f possible')
+            where possible' = concatMap extend possible
                   f = \x->last x == d
-                  extend steps =  [steps ++ [p] |  p <- (neighbors (last steps)),
-                              not (p `elem` steps)]
+                  extend steps =  [steps ++ [p] |  p <- neighbors (last steps),
+                              p `notElem` steps]
                   neighbors p = [p2 | (p1, p2) <- edges, p1 == p ]
 
 --82
@@ -38,11 +38,11 @@ cycle' :: Int -> [(Int, Int)] -> [[Int]]
 cycle' sd edges = helper [[sd]] []
     where helper [] final = final
           helper possible final =
-              helper (filter (not . f) possible') (final++(filter f possible'))
-                where possible' = concat $ map extend possible
+              helper (filter (not . f) possible') (final++filter f possible')
+                where possible' = concatMap extend possible
                       f = \x -> (last x == sd) && length x > 1
-                      extend steps =  [steps ++ [p] |  p <- (neighbors (last steps)),
-                                        not (p `elem` (tail steps))]
+                      extend steps =  [steps ++ [p] |  p <- neighbors (last steps),
+                                        p `notElem` (tail steps)]
                       neighbors p = [p2 | (p1, p2) <- edges, p1 == p ]
 
 --83 spanning trees
@@ -56,20 +56,20 @@ expandTree g@(Graph cs es, Graph cs' es')
     | otherwise = map f [1..length next_es]
           where (next_es, others) = sepConn cs' (fst g)
                 pointNotIn (ep1, ep2) = if ep1 `elem` cs' then ep2 else ep1
-                f i = (Graph cs ((drop i next_es)++others),
-                    Graph ((pointNotIn (next_es!!(i-1))):cs') ((next_es!!(i-1)):es'))
+                f i = (Graph cs (drop i next_es++others),
+                    Graph (pointNotIn (next_es!!(i-1)):cs') ((next_es!!(i-1)):es'))
 
-sepConn :: [Char] -> Graph -> ([(Char, Char)], [(Char, Char)])
-sepConn cs (Graph _ es) = ([ (a, b) | (a, b)<-es, (f a b) || (f b a)]
+sepConn :: String -> Graph -> ([(Char, Char)], [(Char, Char)])
+sepConn cs (Graph _ es) = ([ (a, b) | (a, b)<-es, f a b || f b a]
                          , [ (a, b) | (a, b)<-es, not (g a), not (g b)])
-                            where f a b = (g a) && (not (g b))
+                            where f a b = g a && not (g b)
                                   g a = a `elem` cs
 
 spantree :: Graph -> [(Graph, Graph)]
 spantree g@(Graph ns es) =  helper initial
     where initial = [(g, Graph [head ns] [])]
           helper xs = if xs == ys then xs else helper ys
-            where ys = concat $ map expandTree xs
+            where ys = concatMap expandTree xs
 
 --84 Prim algorithm, minimal spanning tree
 
@@ -77,8 +77,8 @@ data Graph' = Graph' [Int] [(Int, Int, Int)]
 
 extend :: Graph' -> Graph' -> Graph'
 extend (Graph' xs xes) (Graph' ys yes) = Graph' (nexty:ys) (nextye:yes)
-    where isConn m n = (m `elem` ys) && (not $ n `elem` ys)
-          nextye = minEdge [ xe | xe@(a, b, _) <- xes, (isConn a b) || (isConn b a)]
+    where isConn m n = (m `elem` ys) && notElem n ys
+          nextye = minEdge [ xe | xe@(a, b, _) <- xes, isConn a b || isConn b a]
           nexty = let (a, b, _)  = nextye
                   in if a `elem` ys then b else a
 
@@ -105,8 +105,8 @@ mapEdges :: [(Int, Int)] -> [Int] -> [(Int, Int)]
 mapEdges xs ms = sort [ (ms!!(a-1), ms!!(b-1)) | (a, b) <- xs]
 
 iso :: GraphI -> GraphI -> Bool
-iso (GraphI xs xes) (GraphI ys yes) = ((sort xs) == (sort ys)) &&
-    (any (== sort yes)  (map (mapEdges xes) (combinations xs)))
+iso (GraphI xs xes) (GraphI ys yes) = (sort xs == sort ys) &&
+    elem sort yes  (map (mapEdges xes) (combinations xs))
 
 --example from https://wiki.haskell.org/99_questions/80_to_89
 graphG1 = GraphI [1,2,3,4,5,6,7,8] [(1,5),(1,6),(1,7),(2,5),(2,6),(2,8),(3,5),(3,7),(3,8),(4,6),(4,7),(4,8)]

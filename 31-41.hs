@@ -6,7 +6,7 @@ import Text.Printf as TP
 isPrime :: Int -> Bool
 isPrime x
     | x <= 1 = False
-    | otherwise = all (/=0) $ map (mod x) [2..floor ((fromIntegral (x))/2)]
+    | otherwise = notElem 0 $ map (mod x) [2..floor (fromIntegral x/2)]
 
 -- 32 Euclidean algorithm
 myGCD :: Int -> Int -> Int
@@ -20,7 +20,7 @@ coprime x y = myGCD x y == 1
 -- 34
 totient :: Int -> Int
 totient 1 = 1
-totient x = foldl (\r xi -> if xi == True then (r + 1) else r) 0
+totient x = foldl (\r xi -> if xi then r + 1 else r) 0
             $ map (coprime x) [1..x-1]
 
 -- 35
@@ -37,7 +37,7 @@ prime_factors_mult x = map (\x-> (head x, length x)) $ group $ primeFactors x
 
 -- 37
 phi :: Int -> Int
-phi x = product $ map (\f -> let f' = head f in (f'-1)*f'^((length f)-1)) fl
+phi x = product $ map (\f -> let f' = head f in (f'-1)*f'^(length f-1)) fl
     where fl = DL.group $ primeFactors x
 
 -- 38
@@ -46,7 +46,7 @@ timef f a = do
     start <- SC.getCPUTime
     f a `seq` return ()
     end <- SC.getCPUTime
-    putStrLn $ show $ (fromIntegral (start-end)) / (10^12)
+    print (fromIntegral (start-end)) / (10^12)
 
 comparePhi :: Int -> IO ()
 comparePhi x = do

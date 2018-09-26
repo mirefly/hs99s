@@ -3,7 +3,7 @@ import Data.List as DL
 
 -- 21
 insertAt :: a -> [a] -> Int -> [a]
-insertAt y xs n = let r = splitAt (n-1) xs in (fst r) ++ (y:(snd r))
+insertAt y xs n = let r = splitAt (n-1) xs in fst r ++ (y:snd r)
 
 -- 22
 range :: Int -> Int -> [Int]
@@ -14,7 +14,7 @@ range a b = take (b-a+1) [a..]
 rnd_select :: String -> Int -> IO String
 rnd_select s n = do
     g <- SR.getStdGen
-    let ks = take n $ SR.randomRs (0, (length s)-1) g
+    let ks = take n $ SR.randomRs (0, length s-1) g
     return $ map (\k->s!!k) ks
 
 -- 24
@@ -24,13 +24,13 @@ diff_select n xm = do
     return (fst y)
 
 select_n :: Int -> [a] -> IO ([a], [a])
-select_n 0 xs = do
+select_n 0 xs =
     return ([], xs)
 select_n n xs = do
     g <- SR.getStdGen
-    let k = fst $ SR.randomR (0, (length xs) - 1) g
-    y' <- select_n (n-1) ((take k xs)++(drop (k+1) xs))
-    return ((xs!!k):(fst y'), snd y')
+    let k = fst $ SR.randomR (0, length xs - 1) g
+    y' <- select_n (n-1) (take k xs++drop (k+1) xs)
+    return ((xs!!k):fst y', snd y')
 
 -- 25
 rnd_permu :: String -> IO String
@@ -47,7 +47,7 @@ combinations n []
 combinations n xss@(x:xs)
     | n > length xss = []
     | n == length xss = [xss]
-    | otherwise = (map (\v->x:v) $ combinations (n-1) xs) ++ combinations n xs
+    | otherwise = map (\v->x:v) (combinations (n-1) xs) ++ combinations n xs
 
 -- 27
 {-
@@ -61,19 +61,19 @@ permutation xs = foldl (++) [] $ map f $ zip xs [0..]
 -}
 
 group' :: Eq a => [Int] -> [a] -> [[[a]]]
-group' [n] xs = map (\x->[x]) $ combinations n xs
-group' (n:ns) xs = foldl (++) [] $ map f $ combinations n xs
-    where f ys = map ((:) ys) $ group' ns $ filter (\v->not $ elem v ys) xs
+group' [n] xs = map ((: [])) $ combinations n xs
+group' (n:ns) xs = concat $ map f $ combinations n xs
+    where f ys = map ((:) ys) $ group' ns $ filter (\v->notElem v ys) xs
 
 -- 28
 lsort :: [[a]] -> [[a]]
 lsort [] = []
-lsort (x:xs) = (lsort short) ++ [x] ++ (lsort long)
+lsort (x:xs) = lsort short ++ [x] ++ lsort long
     where short = [y | y<-xs, length y <= length x]
           long = [y | y<-xs, length y > length x]
 
 lfsort :: [[a]] -> [[a]]
-lfsort xs = foldl (++) [] $ DL.sortBy comparelen $ DL.groupBy beEq
+lfsort xs = concat $ DL.sortBy comparelen $ DL.groupBy beEq
             $ DL.sortBy comparelen xs
             where comparelen = \x y -> compare (length x) (length y)
                   beEq z1 z2 = (==) EQ $ comparelen z1 z2

@@ -106,9 +106,56 @@ mapEdges xs ms = sort [ (ms!!(a-1), ms!!(b-1)) | (a, b) <- xs]
 
 iso :: GraphI -> GraphI -> Bool
 iso (GraphI xs xes) (GraphI ys yes) = (sort xs == sort ys) &&
-    elem sort yes  (map (mapEdges xes) (combinations xs))
+    elem (sort yes)  (map (mapEdges xes) (combinations xs))
 
 --example from https://wiki.haskell.org/99_questions/80_to_89
 graphG1 = GraphI [1,2,3,4,5,6,7,8] [(1,5),(1,6),(1,7),(2,5),(2,6),(2,8),(3,5),(3,7),(3,8),(4,6),(4,7),(4,8)]
 graphH1 = GraphI [1,2,3,4,5,6,7,8] [(1,2),(1,4),(1,5),(6,2),(6,5),(6,7),(8,4),(8,5),(8,7),(3,2),(3,4),(3,7)]
---
+
+-- 86 Welch-Powell's algorithm
+
+kcolor :: String -> [(Char, Char)] -> [(Char, Int)]
+kcolor xs ys = sort $ helper [] xs'
+    where colors = [1..]
+          xs' = sortByDegDec xs ys
+          helper cs [] = cs
+          helper cs (z:zs) = helper ((z, head [c|c<-colors,
+                    c `notElem` neighborsColors z ys cs]):cs) zs
+
+sortByDegDec :: String -> [(Char, Char)] -> String
+sortByDegDec xs ys = sortBy (\x y -> compare (degree x) (degree y)) xs
+    where degree c = length $ filter (\y -> c == fst y || c == snd y) ys
+
+neighborsColors :: Char -> [(Char, Char)] -> [(Char, Int)] -> [Int]
+neighborsColors x ys cs = [snd c | c<-cs, fst c `elem` colorNeighbors]
+    where neighbors = [if x == fst y then snd y else fst y | y <- ys,
+                        x == fst y || x == snd y]
+          colorNeighbors = [n | n <- neighbors, n `elem` fst (unzip cs)]
+
+-- 87
+depthFirst :: ([Int], [(Int, Int)]) -> Int -> [Int]
+depthFirst (xs, ys) z = reverse $ update [z] [z]
+    where neighbors c = [if fst y == c then snd y else fst y
+                         | y<-ys, fst y == c || snd y == c]
+          update visited [] = visited
+          update visited s@(top:stack) =
+            if null ms then update visited stack
+            else  let m' = head ms in update (m':visited) (m':s)
+                where ms = [m | m <- neighbors top, m `notElem` visited]
+
+-- 88
+connectedComponents :: ([Int], [(Int, Int)]) -> [[Int]]
+connectedComponents xys@([], ys) = []
+connectedComponents xys@(xs, ys) = newgr : connectedComponents (xs', ys)
+        where newgr = depthFirst xys (head xs)
+              xs' = [x | x<-xs, x `notElem` newgr]
+
+-- 89 -- brute force, enumerate all decomposings, limited to node labels [1..]
+bipartite :: ([Int], [(Int, Int)]) -> Bool
+bipartite (xs, ys) = any f ms
+    where ms = enumBool (length xs)
+          f m = all (\(a, b) -> m!!(a-1) /= m!!(b-1)) ys
+
+enumBool :: Int -> [[Bool]]
+enumBool 1 = [[True], [False]]
+enumBool n = let last = enumBool (n-1) in map (True :) last ++ map (False :) last

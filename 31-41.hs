@@ -46,7 +46,7 @@ timef f a = do
     start <- SC.getCPUTime
     f a `seq` return ()
     end <- SC.getCPUTime
-    print (fromIntegral (start-end)) / (10^12)
+    print ((fromIntegral (start-end)) / (10^12))
 
 comparePhi :: Int -> IO ()
 comparePhi x = do

@@ -6,11 +6,9 @@ tree1 = Node 'a' []
 tree2 = Node 'a' [Node 'b' []]
 tree3 = Node 'a' [Node 'b' [Node 'c' []]]
 tree4 = Node 'b' [Node 'd' [], Node 'e' []]
-tree5 = Node 'a' [
-                Node 'f' [Node 'g' []],
-                Node 'c' [],
-                Node 'b' [Node 'd' [], Node 'e' []]
-                ]
+tree5 = Node
+    'a'
+    [Node 'f' [Node 'g' []], Node 'c' [], Node 'b' [Node 'd' [], Node 'e' []]]
 
 -- 70C
 nnodes :: Tree a -> Int
@@ -20,16 +18,17 @@ nnodes (Node _ xs) = 1 + (sum $ map nnodes xs)
 stringToTree :: [Char] -> Tree Char
 stringToTree s = head . fst $ accum [] s
 
-accum nodes [] = (nodes, [])
-accum nodes ('^':ys) = (nodes, ys)
-accum nodes (y:ys) = accum (nodes ++ [Node y nodes']) rest'
-                      where (nodes', rest') = accum [] ys
+accum nodes []         = (nodes, [])
+accum nodes ('^' : ys) = (nodes, ys)
+accum nodes (y   : ys) = accum (nodes ++ [Node y nodes']) rest'
+    where (nodes', rest') = accum [] ys
 
 -- 71
 ipl :: Tree a -> Int
 ipl xtr@(Node x ts) = (g xtr - 1) + sum (map ipl ts)
-                      where g (Node x []) = 1 
-                            g (Node x ts) = 1 + sum (map g ts)
+  where
+    g (Node x []) = 1
+    g (Node x ts) = 1 + sum (map g ts)
 
 -- 72
 bottom_up :: Tree Char -> [Char]
@@ -43,9 +42,10 @@ display_lisp (Node x ts) = ('(' : x : ' ' : str') ++ ")"
 
 --ltl2tree :: [Char] -> Tree Char
 ltl2tree s = head . fst $ helper [] s
-    where helper nodes [] = (nodes, [])
-          helper nodes (' ':xs) = helper nodes xs
-          helper nodes ('(':xs) = helper (nodes ++ [Node (head xs) chd]) rest
-              where (chd, rest) = helper [] (tail xs)
-          helper nodes (')':xs) = (nodes, xs)
-          helper nodes (x:xs) = helper (nodes ++ [Node x []]) xs
+  where
+    helper nodes []         = (nodes, [])
+    helper nodes (' ' : xs) = helper nodes xs
+    helper nodes ('(' : xs) = helper (nodes ++ [Node (head xs) chd]) rest
+        where (chd, rest) = helper [] (tail xs)
+    helper nodes (')' : xs) = (nodes, xs)
+    helper nodes (x   : xs) = helper (nodes ++ [Node x []]) xs
